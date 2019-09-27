@@ -2,20 +2,25 @@ import os
 
 from pathlib import Path
 
-from twisted.web import server, resource, static
+from twisted.web import server, resource, static, http
 from twisted.internet import reactor
 
-file_path = Path(os.path.dirname(__file__))
-root_path = file_path.parent
+import server.utils.helper as helper
+
+script_path = Path(os.path.dirname(__file__))
+project_root_path = script_path.parent
 
 if __name__ == "__main__":
 
     port = 8000
-    root = static.File(bytes(os.path.join(root_path,"client/index.html"),'utf-8'))
+    root = resource.Resource()
 
-    client_dir = os.path.join(root_path, "client/")
-    for file in os.listdir(client_dir):
-        root.putChild(bytes(file,'utf-8'), static.File(bytes(client_dir + file,'utf-8')))
+    rootPage = static.File(os.path.join(project_root_path,"client/index.html"))
+    root.putChild(helper.str_to_utf8(''), rootPage)
+
+    client_path = os.path.join(project_root_path, "client/")
+    for file in os.listdir(client_path):
+            root.putChild(helper.str_to_utf8(file), static.File(client_path + file))
 
     site = server.Site(root)
     reactor.listenTCP(8000, site)
