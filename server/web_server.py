@@ -5,14 +5,28 @@ from pathlib import Path
 from twisted.web import server, resource, static, http
 from twisted.internet import reactor
 
-import server.utils.helper as helper
+from autobahn.twisted.websocket import WebSocketServerFactory, WebSocketServerProtocol
+from autobahn.twisted.resource import WebSocketResource
+
+import utils.helper as helper
 
 script_path = Path(os.path.dirname(__file__))
 project_root_path = script_path.parent
 
+
+class MyServerProtocol(WebSocketServerProtocol):
+
+    def onConnect(self, request):
+        print("Client connecting: {}".format(request.peer))
+
+    def onDisconnect(self):
+        print("transport disconnected")
+
 if __name__ == "__main__":
 
     port = 8000
+
+    # web server
     root = resource.Resource()
 
     rootPage = static.File(os.path.join(project_root_path,"client/index.html"))
@@ -23,7 +37,14 @@ if __name__ == "__main__":
             root.putChild(helper.str_to_utf8(file), static.File(client_path + file))
 
     site = server.Site(root)
-    reactor.listenTCP(8000, site)
 
+    # websocket / tcp
+    factory = WebSocketServerFactory()
+    factory.protocol = MyServerProtocol
+    ws_resource = WebSocketResource(factory)
+    root.putChild(helper.str_to_utf8("ws"), ws_resource)
+
+    # start listining
     print("web server starting on port:", port)
+    reactor.listenTCP(8000, site)
     reactor.run()
