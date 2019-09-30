@@ -10,6 +10,7 @@ autopep8 = "*"
 [packages]
 twisted = "==19.7.0"
 autobahn = "==19.9.3"
+pylint = "*"
 
 [requires]
 python_version = "3.7"
