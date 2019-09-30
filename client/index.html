@@ -17,13 +17,13 @@
                 ws.onopen = function () {
 
                     // Web Socket is connected, send data using send()
-                    ws.send("Message to send");
+                    ws.send("Test message/payload");
                     alert("Message is sent...");
                 };
 
                 ws.onmessage = function (evt) {
                     var received_msg = evt.data;
-                    alert("Message is received...");
+                    alert("Message is received... " + received_msg);
                 };
 
                 ws.onclose = function () {
@@ -42,7 +42,7 @@
 </head>
 
 <body>
-    Python, Multiplayer Server!
+    Python, Realtime Multiplayer Server!
     <div id="sse">
         <a href="javascript:WebSocketTest()">Run WebSocket</a>
     </div>

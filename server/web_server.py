@@ -19,8 +19,18 @@ class MyServerProtocol(WebSocketServerProtocol):
     def onConnect(self, request):
         print("Client connecting: {}".format(request.peer))
 
-    def onDisconnect(self):
-        print("transport disconnected")
+    def connectionLost(self, reason):
+        print("Client disconnected")
+
+    def onMessage(self, payload, isBinary):
+        if isBinary:
+            print("Binary message received: {} bytes".format(len(payload)))
+        else:
+            print("Text message received: {}".format(payload.decode('utf8')))
+
+        ## echo back message verbatim
+        self.sendMessage(payload, isBinary)
+
 
 if __name__ == "__main__":
 
