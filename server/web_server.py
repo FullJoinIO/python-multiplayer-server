@@ -1,4 +1,4 @@
-import os
+import os, uuid
 
 from pathlib import Path
 
@@ -17,10 +17,11 @@ project_root_path = script_path.parent
 class MyServerProtocol(WebSocketServerProtocol):
 
     def onConnect(self, request):
-        print("Client connecting: {}".format(request.peer))
+        self.id = uuid.uuid4()
+        print("Client connecting: {request.peer} {self.id}")
 
     def connectionLost(self, reason):
-        print("Client disconnected")
+        print("Client disconnected: {self.id}")
 
     def onMessage(self, payload, isBinary):
         if isBinary:
