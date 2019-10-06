@@ -29,23 +29,22 @@ class ServerProtocol(WebSocketServerProtocol):
 class ServerFactory(WebSocketServerFactory):
 
     def __init__(self, *args, **kwargs):
+
         super(ServerFactory, self).__init__(*args, **kwargs)
         self.clients = {}
         #self.game_server = Game_server(self)
 
     def register(self, client):
-        """
-        Add client to list of managed connections.
-        """
+
+        # Generate unique id and add client to list of managed connections.
         client.id = uuid.uuid4()
-        print("Client connecting: {client.peer} {client.id}")
         self.clients[client.peer] = client
+        print("Client connecting: {client.peer} {client.id}")
 
 
     def unregister(self, client):
-        """
-        Remove client from list of managed connections.
-        """
+
+        # Remove client from list of managed connections.
         print("Client disconnected: {client.id}")
         self.clients.pop(client.peer)
 
@@ -55,16 +54,14 @@ class ServerFactory(WebSocketServerFactory):
         else:
             print("Text message received: {}".format(payload.decode('utf8')))
 
-        ## echo back message verbatim
         client.sendMessage(payload, isBinary)
-
 
 
 if __name__ == "__main__":
 
     port = 8000
 
-    # web server
+    # Web server setup
     root = resource.Resource()
 
     rootPage = static.File(os.path.join(project_root_path,"client/index.html"))
@@ -74,17 +71,16 @@ if __name__ == "__main__":
     for file in os.listdir(client_path):
             root.putChild(helper.str_to_utf8(file), static.File(client_path + file))
 
-    # websocket / tcp
+    # Websocket over tcp setup
     factory = ServerFactory()
     factory.protocol = ServerProtocol
     factory.noisy = False
     ws_resource = WebSocketResource(factory)
     root.putChild(helper.str_to_utf8("ws"), ws_resource)
 
-
-    # start listining
+    # Server listining
     site = server.Site(root)
     print("Python: " + platform.python_version())
-    print("Web server starting on port:", port)
-    reactor.listenTCP(8000, site)
+    print("Web server listening on port:", port)
+    reactor.listenTCP(port, site)
     reactor.run()
