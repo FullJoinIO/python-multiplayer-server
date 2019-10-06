@@ -9,6 +9,7 @@ from autobahn.twisted.websocket import WebSocketServerFactory, WebSocketServerPr
 from autobahn.twisted.resource import WebSocketResource
 
 import utils.helper as helper
+from game_server import GameServer
 
 script_path = Path(os.path.dirname(__file__))
 project_root_path = script_path.parent
@@ -32,29 +33,30 @@ class ServerFactory(WebSocketServerFactory):
 
         super(ServerFactory, self).__init__(*args, **kwargs)
         self.clients = {}
-        #self.game_server = Game_server(self)
+        self.game_server = GameServer(self)
 
     def register(self, client):
 
         # Generate unique id and add client to list of managed connections.
         client.id = uuid.uuid4()
         self.clients[client.peer] = client
-        print("Client connecting: {client.peer} {client.id}")
+        #print(f"Client connecting: {client.peer} {client.id}")
 
 
     def unregister(self, client):
 
         # Remove client from list of managed connections.
-        print("Client disconnected: {client.id}")
+        #print(f"Client disconnected: {client.id}")
+        self.game_server.onPlayerLeave(client)
         self.clients.pop(client.peer)
 
     def onMessage(self, client, payload, isBinary):
-        if isBinary:
-            print("Binary message received: {} bytes".format(len(payload)))
-        else:
-            print("Text message received: {}".format(payload.decode('utf8')))
 
-        client.sendMessage(payload, isBinary)
+        if isBinary:
+            print(f"Binary message received: {len(payload)} bytes")
+            print("Binary currently not support by message handler")
+        else:
+            self.game_server.messageHandler(client,payload.decode('utf8'))
 
 
 if __name__ == "__main__":
@@ -80,7 +82,7 @@ if __name__ == "__main__":
 
     # Server listining
     site = server.Site(root)
-    print("Python: " + platform.python_version())
-    print("Web server listening on port:", port)
+    print(f"Python: {platform.python_version()}")
+    print(f"Web server listening on port: {port}")
     reactor.listenTCP(port, site)
     reactor.run()
