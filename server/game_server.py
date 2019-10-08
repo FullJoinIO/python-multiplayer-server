@@ -1,3 +1,4 @@
+from game_entities.player import Player
 
 class GameServer:
 
@@ -34,7 +35,7 @@ class Room:
 
     def join(self, client):
         client.room = self
-        self.players[client.id] = client
+        self.players[client.id] = Player(client.id)
         self.player_count += 1
 
         print(f"Player {client.id} has joined. Player count: {self.player_count}")
@@ -46,7 +47,7 @@ class Room:
         print(f"Player {client_id} has left. Player count: {self.player_count}")
 
     def isFull(self):
-        return true if self.player_count == self.capacity else False
+        return True if self.player_count == self.capacity else False
         
 
 
