@@ -63,6 +63,9 @@ if __name__ == "__main__":
 
     port = 8000
 
+    print(f"Python: {platform.python_version()}")
+    print(f"Web server listening port: {port}")
+
     # Web server setup
     root = resource.Resource()
 
@@ -82,7 +85,5 @@ if __name__ == "__main__":
 
     # Server listining
     site = server.Site(root)
-    print(f"Python: {platform.python_version()}")
-    print(f"Web server listening on port: {port}")
     reactor.listenTCP(port, site)
     reactor.run()
