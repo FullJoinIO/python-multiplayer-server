@@ -42,6 +42,7 @@ class ServerFactory(WebSocketServerFactory):
 
         # Generate unique id and add client to list of managed connections.
         client.id = helper.get_uuid()
+        client.room = None
         self.clients[client.peer] = client
         #print(f"Client connecting: {client.peer} {client.id}")
 

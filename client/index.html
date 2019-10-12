@@ -18,13 +18,16 @@
 
                     // Web Socket is connected, send data using send()
                     ws.send("opj.Test message/payload");
-                    alert("Message is sent...");
+                    //alert("Message is sent...");
                 };
 
                 ws.onmessage = function (evt) {
-                    var received_msg = evt.data;
-                    console.log(received_msg)
-                    //alert("Message is received... " + received_msg);
+                    var data = JSON.parse(evt.data)
+                    
+                    document.getElementById("player_count_server").innerHTML = `Player count server: ${data.server_stats.player_count_server}`
+                    document.getElementById("player_count_room").innerHTML = `Player count room: ${data.server_stats.player_count_room}`
+                    
+                    //console.log(data)
                 };
 
                 ws.onclose = function () {
@@ -47,6 +50,8 @@
     <div id="sse">
         <a href="javascript:WebSocketTest()">Run WebSocket</a>
     </div>
+    <div id="player_count_server">Player count server:</div>
+    <div id="player_count_room">Player count room:</div>
 
 </body>
 
