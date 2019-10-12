@@ -1,7 +1,7 @@
 import threading, time
 from datetime import datetime
 
-from game_entities.player import Player
+from server.game_entities.player import Player
 
 class GameServer:
 

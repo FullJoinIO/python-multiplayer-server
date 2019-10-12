@@ -1,4 +1,7 @@
-import os, uuid, platform
+import sys, os, uuid, platform
+
+sys.path.append("./")
+# print('\n'.join(sys.path))
 
 from pathlib import Path
 
@@ -8,8 +11,8 @@ from twisted.internet import reactor
 from autobahn.twisted.websocket import WebSocketServerFactory, WebSocketServerProtocol
 from autobahn.twisted.resource import WebSocketResource
 
-import utils.helper as helper
-from game_server import GameServer
+import server.utils.helper as helper
+from server.game_server import GameServer
 
 script_path = Path(os.path.dirname(__file__))
 project_root_path = script_path.parent
@@ -59,31 +62,38 @@ class ServerFactory(WebSocketServerFactory):
             self.game_server.messageHandler(client,payload.decode('utf8'))
 
 
+class WebServer():
+
+    def __init__(self, *args, **kwargs):
+        
+        port = 8000
+
+        print(f"Python: {platform.python_version()}")
+        print(f"Web server listening port: {port}")
+
+        # Web server setup
+        root = resource.Resource()
+
+        rootPage = static.File(os.path.join(project_root_path,"client/index.html"))
+        root.putChild(helper.str_to_utf8(''), rootPage)
+
+        client_path = os.path.join(project_root_path, "client/")
+        for file in os.listdir(client_path):
+                root.putChild(helper.str_to_utf8(file), static.File(client_path + file))
+
+        # Websocket over tcp setup
+        factory = ServerFactory()
+        factory.protocol = ServerProtocol
+        factory.noisy = False
+        ws_resource = WebSocketResource(factory)
+        root.putChild(helper.str_to_utf8("ws"), ws_resource)
+
+        # Server listining
+        site = server.Site(root)
+        reactor.listenTCP(port, site)
+        reactor.run()
+
+
+
 if __name__ == "__main__":
-
-    port = 8000
-
-    print(f"Python: {platform.python_version()}")
-    print(f"Web server listening port: {port}")
-
-    # Web server setup
-    root = resource.Resource()
-
-    rootPage = static.File(os.path.join(project_root_path,"client/index.html"))
-    root.putChild(helper.str_to_utf8(''), rootPage)
-
-    client_path = os.path.join(project_root_path, "client/")
-    for file in os.listdir(client_path):
-            root.putChild(helper.str_to_utf8(file), static.File(client_path + file))
-
-    # Websocket over tcp setup
-    factory = ServerFactory()
-    factory.protocol = ServerProtocol
-    factory.noisy = False
-    ws_resource = WebSocketResource(factory)
-    root.putChild(helper.str_to_utf8("ws"), ws_resource)
-
-    # Server listining
-    site = server.Site(root)
-    reactor.listenTCP(port, site)
-    reactor.run()
+    web_server = WebServer()
