@@ -1,7 +1,7 @@
 import threading, time, json
-from datetime import datetime
 
 from server.game_entities.player import Player
+from server.utils.loop_factory import LoopFactory
 
 class GameServer:
 
@@ -38,30 +38,10 @@ class GameServer:
             client.room.leave(client.id)
 
     def networkLoop(self):
-
-        FPS = 10
-        current_time = .0
-        last_frame_time = .0
-
-        print(f'Network Loop Thread started. FPS: {FPS}')
-
-        while True:
-            
-            # d = datetime.now()
-            # print(d)
-
-            start_time = time.time()
-            dt = start_time - last_frame_time
-            last_frame_time = start_time
-
-            self.network_update()
-
-            sleep_time = 1./FPS - (time.time() - start_time)
-            if sleep_time > 0:
-                time.sleep(sleep_time)
+        loop = LoopFactory(name = 'Network', tick_rate = 10)
+        loop.simpleLoop(self.network_update)
 
     def network_update(self):
-
         # Send update to each connected client
         for room in self.rooms:
 
