@@ -2,6 +2,7 @@ import threading, time, json
 
 from server.game_entities.player import Player
 from server.utils.loop_factory import LoopFactory
+from server.game_core import GameCore
 
 class GameServer:
 
@@ -60,6 +61,7 @@ class GameServer:
 class Room:
     def __init__(self, game_server, capacity):
         self.game_server = game_server
+        self.game_core = GameCore(self)
         self.players = {}
         self.capacity = capacity
         self.player_count = 0
