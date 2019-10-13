@@ -13,27 +13,38 @@
 
                 // open a web socket
                 var ws = new WebSocket(`ws://${location.hostname}:${location.port}/ws`);
+                var packages = []
+
+                // Network tick rate calculation
+                setInterval(function(){ 
+                    document.getElementById("network_tick_rate").innerHTML = `Network tick rate: ${packages.length}`
+                    packages.splice(0,packages.length)
+                }, 1000);
 
                 ws.onopen = function () {
 
-                    // Web Socket is connected, send data using send()
-                    ws.send("opj.Test message/payload");
-                    //alert("Message is sent...");
+                    // Web Socket is connected
+                    document.getElementById("network_state").innerHTML = `Network state: CONNECTED`
+
+                    // Send request to join a game
+                    ws.send("opj.");
                 };
 
                 ws.onmessage = function (evt) {
+                    
                     var data = JSON.parse(evt.data)
+                    packages.push(data)
                     
                     document.getElementById("player_count_server").innerHTML = `Player count server: ${data.server_stats.player_count_server}`
                     document.getElementById("player_count_room").innerHTML = `Player count room: ${data.server_stats.player_count_room}`
-                    
+
                     //console.log(data)
                 };
 
                 ws.onclose = function () {
 
                     // websocket is closed.
-                    console.log("Connection is closed...");
+                    document.getElementById("network_state").innerHTML = `Network state: CLOSED`
                 };
             } else {
 
@@ -52,6 +63,8 @@
     </div>
     <div id="player_count_server">Player count server:</div>
     <div id="player_count_room">Player count room:</div>
+    <div id="network_state">Network state: DISCONNECTED</div>
+    <div id="network_tick_rate">Network tick rate:</div>
 
 </body>
 
