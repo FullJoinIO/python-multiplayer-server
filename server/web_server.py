@@ -1,4 +1,4 @@
-import sys, os, uuid, platform
+import sys, os, platform
 
 sys.path.append("./")
 # print('\n'.join(sys.path))
@@ -36,23 +36,30 @@ class ServerFactory(WebSocketServerFactory):
 
         super(ServerFactory, self).__init__(*args, **kwargs)
         self.clients = {}
+        self.client_count = 0
         self.game_server = GameServer(self)
 
     def register(self, client):
 
         # Generate unique id and add client to list of managed connections.
         client.id = helper.get_uuid()
+        
         client.room = None
-        self.clients[client.peer] = client
-        #print(f"Client connecting: {client.peer} {client.id}")
 
+        self.clients[client.id] = client
+        self.client_count += 1
+        
+        #print(f"Client connecting: {client.peer} {client.id}")
 
     def unregister(self, client):
 
-        # Remove client from list of managed connections.
         #print(f"Client disconnected: {client.id}")
+
+        # Remove client from list of managed connections.
         self.game_server.onPlayerLeave(client)
-        self.clients.pop(client.peer)
+
+        del self.clients[client.id]
+        self.client_count -= 1
 
     def onMessage(self, client, payload, isBinary):
 
@@ -62,6 +69,8 @@ class ServerFactory(WebSocketServerFactory):
         else:
             self.game_server.messageHandler(client,payload.decode('utf8'))
 
+    def sendMessage(self, cliend_id, payload):
+        self.clients[cliend_id].sendMessage(payload, False)
 
 class WebServer():
 
