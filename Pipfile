@@ -12,6 +12,7 @@ rope = "*"
 twisted = "==19.7.0"
 autobahn = "==19.9.3"
 pylint = "*"
+pymunk = "*"
 
 [requires]
 python_version = "3.7"
