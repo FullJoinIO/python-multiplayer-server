@@ -62,9 +62,8 @@ class GameServer:
  
     def networkLoop(self):
         loop = LoopFactory(name = 'Network', tick_rate = 10)
-        loop.simpleLoop(self.processQueue
-            , self.processPlayerQueues
-            , self.sendNetworkUpdates
+        loop.simpleLoop(self.processQueue,
+            self.sendNetworkUpdates
         )
  
     def sendNetworkUpdates(self):
@@ -84,36 +83,7 @@ class GameServer:
             payload = str.encode(json.dumps(payload))
             for player in room.players.values():
                 self.webserver.sendMessage(player.id, payload)
-     
-    def processPlayerQueues(self):
- 
-        for room in self.rooms:
- 
-            join_queue_removed_keys = []
-            leave_queue_removed_keys = []
- 
-            # Add player to the world
-            for key in room.player_joining_queue.keys():
-                player = room.player_joining_queue[key]
-                room.game_core.space.add(player.body, player.shape)
-                 
-                room.players[player.id] = player
-                join_queue_removed_keys.append(player.id)
- 
-            # Remove player from the world
-            for key in room.player_leaving_queue.keys():
-                player = room.players[key]
-                room.game_core.space.remove(player.shape, player.body)
- 
-                del room.players[player.id]
-                leave_queue_removed_keys.append(player.id)
- 
-            # Remove keys from dicts after they've been iterated
-            for key in join_queue_removed_keys:
-                del room.player_joining_queue[key]
- 
-            for key in leave_queue_removed_keys:
-                del room.player_leaving_queue[key]
+
  
 class Room:
     def __init__(self, game_server, capacity):
@@ -123,19 +93,24 @@ class Room:
         self.players = {}
         self.player_count = 0
         self.capacity = capacity
-         
-        self.player_joining_queue = {}
-        self.player_leaving_queue = {}
  
     def join(self, client):
         client.room = self
          
-        self.player_joining_queue[client.id] = Player(client.id)
+        player = Player(client.id)
+        
+        self.game_core.space.add(player.body, player.shape)
+        self.players[player.id] = player
          
         self.updatePlayerCount(client.id, 1)
  
     def leave(self, client):
-        self.player_leaving_queue[client.id] = client
+        client.room = None
+
+        player = self.players[client.id]
+        self.game_core.space.remove(player.shape, player.body)
+
+        del self.players[player.id]
  
         self.updatePlayerCount(client.id, -1)
  
