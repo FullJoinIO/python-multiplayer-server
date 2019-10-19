@@ -27,7 +27,7 @@
                     document.getElementById("network_state").innerHTML = `Network state: CONNECTED`
 
                     // Send request to join a game
-                    ws.send("opj.");
+                    ws.send("opj.sample_data");
                 };
 
                 ws.onmessage = function (evt) {

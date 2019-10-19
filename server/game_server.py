@@ -1,4 +1,4 @@
-import threading, time, json
+import threading, time, json, queue, sys
  
 from server.game_entities.player import Player
 from server.utils.loop_factory import LoopFactory
@@ -10,6 +10,9 @@ class GameServer:
         self.webserver = webserver
         self.player_count = 0
         self.rooms = []
+
+        self.queue_batch_size = 10
+        self.queue = queue.Queue()
  
         # Create rooms
         self.rooms.append(Room(self, 5))
@@ -26,9 +29,28 @@ class GameServer:
  
     def messageHandler(self, client, payload):        
         cmd = payload[0:3]
-        self.commands[cmd](client)
+        data = payload[3:]
+
+        # add message to a queue to be processed later
+        self.queue.put({
+            'cmd': cmd,
+            'data': data,
+            'client': client
+        })
          
+    def processQueue(self):
+
+        # only process a fixed amount of events per tick
+        for _ in range(self.queue_batch_size):
+            try:
+                obj = self.queue.get_nowait()
+            except queue.Empty:
+                break
+            else:
+                self.commands[obj['cmd']](obj['client'])
+
     def onPlayerJoin(self, client):
+        # TODO add is server full
         for room in self.rooms:
             if not room.isFull():
                 room.join(client)
@@ -40,7 +62,10 @@ class GameServer:
  
     def networkLoop(self):
         loop = LoopFactory(name = 'Network', tick_rate = 10)
-        loop.simpleLoop(self.processPlayerQueues, self.sendNetworkUpdates)
+        loop.simpleLoop(self.processQueue
+            , self.processPlayerQueues
+            , self.sendNetworkUpdates
+        )
  
     def sendNetworkUpdates(self):
         # Send update to each connected client
