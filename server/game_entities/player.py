@@ -9,6 +9,7 @@ class Player (BaseEntity):
 
         # Replace base auto generated id with client id
         self.id = client_id
+        self.name = None
 
         self.mass = 10
         self.radius = 25

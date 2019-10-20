@@ -11,6 +11,7 @@ class GameServer:
         self.player_count = 0
         self.rooms = []
 
+        # TODO calcualte the amount of expected messages based on player count
         self.queue_batch_size = 10
         self.queue = queue.Queue()
  
@@ -67,22 +68,50 @@ class GameServer:
         )
  
     def sendNetworkUpdates(self):
-        # Send update to each connected client
-        for room in self.rooms:
- 
-            # Sever stats payload
-            # TODO to be sent every few seconds instead on every tick
-            payload = {
-                    "server_stats": {
-                        "client_count_server": self.webserver.client_count,
-                        "player_count_server": self.player_count,
-                        "player_count_room": room.player_count 
-                }
-            }
- 
-            payload = str.encode(json.dumps(payload))
-            for player in room.players.values():
-                self.webserver.sendMessage(player.id, payload)
+
+        if self.player_count > 0:
+
+            # Send update to each connected client
+            for room in self.rooms:
+    
+                if room.player_count > 0:
+
+                    payload = {
+                        'server_stats': None,
+                        'onp': None, # on new players
+                        'opd': None, # on player diconnected
+                        'opu': [], # on player update
+                    }
+
+                    # Sever stats
+                    # TODO to be sent every few seconds instead on every tick                
+                    payload['server_stats'] = {
+                        'client_count_server': self.webserver.client_count,
+                        'player_count_server': self.player_count,
+                        'player_count_room': room.player_count
+                    }
+
+                    if len(room.new_players) > 0:
+                        payload['onp'] = room.new_players.copy()
+                        room.new_players.clear()
+
+                    if len(room.disconnected_players) > 0:
+                        payload['opd'] = room.disconnected_players.copy()
+                        room.disconnected_players.clear()
+
+                    # Take a snapshot each player state
+                    for player in room.players.values():
+                        payload['opu'].append({
+                            player.id : {
+                                'x': player.body.position.x,
+                                'y': player.body.position.y
+                            }
+                        }
+                    )
+                    
+                    payload = str.encode(json.dumps(payload))
+                    for player in room.players.values():
+                        self.webserver.sendMessage(player.id, payload)
 
  
 class Room:
@@ -93,6 +122,9 @@ class Room:
         self.players = {}
         self.player_count = 0
         self.capacity = capacity
+
+        self.new_players = []
+        self.disconnected_players = []
  
     def join(self, client):
         client.room = self
@@ -101,6 +133,11 @@ class Room:
         
         self.game_core.space.add(player.body, player.shape)
         self.players[player.id] = player
+
+        self.new_players.append({
+            'id': player.id, 
+            'name': player.name
+        })
          
         self.updatePlayerCount(client.id, 1)
  
@@ -109,6 +146,7 @@ class Room:
 
         player = self.players[client.id]
         self.game_core.space.remove(player.shape, player.body)
+        self.disconnected_players.append(player.id)
 
         del self.players[player.id]
  
