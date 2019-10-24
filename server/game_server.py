@@ -92,11 +92,11 @@ class GameServer:
                     }
 
                     if len(room.new_players) > 0:
-                        payload['onp'] = room.new_players.copy()
+                        payload['onp'] = [*room.new_players] # list copy
                         room.new_players.clear()
 
                     if len(room.disconnected_players) > 0:
-                        payload['opd'] = room.disconnected_players.copy()
+                        payload['opd'] = [*room.disconnected_players] # list copy
                         room.disconnected_players.clear()
 
                     # Take a snapshot each player state
@@ -108,7 +108,7 @@ class GameServer:
                             }
                         }
                     )
-                    
+
                     payload = str.encode(json.dumps(payload))
                     for player in room.players.values():
                         self.webserver.sendMessage(player.id, payload)
