@@ -14,6 +14,7 @@
                 // open a web socket
                 var ws = new WebSocket(`ws://${location.hostname}:${location.port}/ws`);
                 var packages = []
+                var client_id = undefined
 
                 // Network tick rate calculation
                 setInterval(function(){ 
@@ -33,11 +34,27 @@
                 ws.onmessage = function (evt) {
                     
                     var data = JSON.parse(evt.data)
-                    packages.push(data)
-                    
-                    document.getElementById("client_count_server").innerHTML = `Client count server: ${data.server_stats.client_count_server}`
-                    document.getElementById("player_count_server").innerHTML = `Player count server: ${data.server_stats.player_count_server}`
-                    document.getElementById("player_count_room").innerHTML = `Player count room: ${data.server_stats.player_count_room}`
+
+                    if(data.opc !== undefined){
+                        client_id = data.opc.id
+                        document.getElementById("client_id").innerHTML = `Client id: ${client_id}`
+                    }
+
+                    if(data.server_stats !== undefined){
+                        packages.push(data)
+
+                        document.getElementById("client_count_server").innerHTML = `Client count server: ${data.server_stats.client_count_server}`
+                        document.getElementById("player_count_server").innerHTML = `Player count server: ${data.server_stats.player_count_server}`
+                        document.getElementById("player_count_room").innerHTML = `Player count room: ${data.server_stats.player_count_room}`
+                    }
+
+                    if(data.opu !== undefined){
+                        for(let key in data.opu){
+                            if(data.opu[key].id === client_id){
+                                document.getElementById("player_position").innerHTML = `Player position: ${data.opu[key].x},${data.opu[key].y}`
+                            }
+                        }
+                    }
 
                     //console.log(data)
                 };
@@ -62,6 +79,8 @@
     <div id="sse">
         <a href="javascript:WebSocketTest()">Run WebSocket</a>
     </div>
+    <div id="client_id">Client id: </div>
+    <div id="player_position">Player position: </div>
     <div id="client_count_server">Client count server:</div>
     <div id="player_count_server">Player count server:</div>
     <div id="player_count_room">Player count room:</div>

@@ -68,11 +68,20 @@ class GameServer:
         )
  
     def sendNetworkUpdates(self):
-
+        
         if self.player_count > 0:
 
             # Send update to each connected client
             for room in self.rooms:
+
+                for player in room.new_players:
+                    payload = {
+                        'opc':{
+                            'id': player['id']   
+                        }
+                    }
+                    payload = str.encode(json.dumps(payload))
+                    self.webserver.sendMessage(player['id'], payload)
     
                 if room.player_count > 0:
 
@@ -95,6 +104,7 @@ class GameServer:
                         payload['onp'] = [*room.new_players] # list copy
                         room.new_players.clear()
 
+                    # TODO disconnected_players is not being cleared when no clients are connected
                     if len(room.disconnected_players) > 0:
                         payload['opd'] = [*room.disconnected_players] # list copy
                         room.disconnected_players.clear()
@@ -102,10 +112,9 @@ class GameServer:
                     # Take a snapshot each player state
                     for player in room.players.values():
                         payload['opu'].append({
-                            player.id : {
-                                'x': player.body.position.x,
-                                'y': player.body.position.y
-                            }
+                            'id': player.id,
+                            'x': player.body.position.x,
+                            'y': player.body.position.y
                         }
                     )
 
