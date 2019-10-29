@@ -6,3 +6,6 @@ class BaseEntity:
 
         self.id = helper.get_uuid()
         self.pos = {'x': None, 'y': None}
+
+        self.body = None
+        self.shape = None

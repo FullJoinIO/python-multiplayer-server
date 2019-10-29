@@ -1,4 +1,6 @@
 from server.game_entities.base_entity import BaseEntity
+import server.game_core as GameCore
+
 import pymunk
 
 class Player (BaseEntity):
@@ -19,7 +21,9 @@ class Player (BaseEntity):
         self.body.position = 0, 0
         
         self.shape = pymunk.Circle(self.body, self.radius, (0, 0))
-        self.shape.elasticity = 0.95
+        self.shape.elasticity = 1.0
         self.shape.friction = 0.9
+        #self.shape.collision_type = GameCore.collision_types["player"]
+
         
         
